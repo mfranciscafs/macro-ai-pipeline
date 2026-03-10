@@ -1,0 +1,115 @@
+World Bank API
+        ↓
+HTTP request
+        ↓
+JSON
+        ↓
+JSON parsing
+        ↓
+Python objects
+        ↓
+DataFrame
+
+
+1. API request
+2. JSON parsing
+3. transformar em DataFrame
+4. ligar ao Postgres
+5. criar tabela com schema correto
+6. inserir dados
+7. proteger contra duplicados
+
+
+3️⃣ Porque isso é um problema em pipelines
+
+Em produção, pipelines devem ser:
+
+✔️ idempotentes
+
+podem correr várias vezes sem falhar.
+
+✔️ resilientes
+
+não falham por coisas triviais.
+
+✔️ automatizados
+
+ninguém está a olhar para eles quando correm.
+
+
+connect_to_database()
+
+ensure_tables_exist()
+
+load_data()
+
+transform_data()
+
+store_results()
+
+1) Migrations — entendeste quase tudo certo
+
+Sim: a lógica é mesmo essa.
+
+Ideia principal
+
+Tens ficheiros versionados no Git que descrevem mudanças ao schema da base de dados.
+
+Exemplo:
+
+migrations/
+├── 001_create_macro_data_table.sql
+├── 002_add_source_column.sql
+└── 003_create_index_on_year.sql
+
+Cada ficheiro diz à BD o que fazer.
+
+Fluxo mental correto
+Hoje
+
+Queres criar a tabela:
+
+001_create_macro_data_table.sql
+Amanhã
+
+Queres adicionar uma coluna:
+
+002_add_unit_column.sql
+Depois
+
+Queres criar um índice:
+
+003_add_index.sql
+Porque isto é poderoso
+
+Porque depois alguém faz:
+
+git clone ...
+
+e corre migrations, e a base de dados fica no mesmo estado esperado.
+
+Ou seja, sim:
+
+fica muito mais reproduzível, auditável e controlado
+
+Mas atenção
+
+As migrations são para schema changes, não para “inserir dados normais do pipeline”.
+
+Ou seja:
+
+migrations servem para:
+
+criar tabela
+
+alterar coluna
+
+criar índice
+
+mudar constraints
+
+migrations NÃO servem para:
+
+inserir GDP de Portugal de 2024
+
+carregar dados diários do pipeline
