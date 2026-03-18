@@ -113,3 +113,188 @@ migrations NÃO servem para:
 inserir GDP de Portugal de 2024
 
 carregar dados diários do pipeline
+
+
+Como vamos fazer isto (abordagem profissional)
+
+Vamos implementar um bulk insert com proteção contra duplicados.
+
+Estrutura:
+
+DataFrame
+↓
+converter linhas
+↓
+INSERT INTO macro_data
+↓
+ON CONFLICT DO NOTHING
+
+Assim o pipeline fica:
+
+idempotente
+
+Ou seja:
+
+podes correr várias vezes
+sem duplicar dados
+
+
+macro-ai-pipeline
+│
+├── src
+│   ├── ingestion
+│   │    worldbank.py
+│   │
+│   ├── processing
+│   │
+│   ├── database
+│   │    db.py
+│   │    load_data.py
+│   │
+│   └── pipeline
+│        run_pipeline.py
+│
+├── tests
+│   └── test_db.py
+│
+├── docker-compose.yml
+├── requirements.txt
+└── README.md
+
+Data pipelines usually have four layers:
+
+- ingestion: collecting data from sources
+- processing: cleaning and transforming data
+- storage: persisting data in a database or data lake
+- serving: exposing data to applications or analytics
+
+3️⃣ Explicação do pipeline architecture
+
+Isto é super importante profissionalmente.
+Quase todos pipelines de dados seguem esta lógica.
+
+Ingestion
+
+Significa buscar dados da fonte.
+
+Exemplos:
+
+API
+
+ficheiros CSV
+
+Kafka stream
+
+base de dados externa
+
+Storage
+
+Guardar os dados num sistema persistente.
+
+Exemplos:
+
+PostgreSQL
+
+S3
+
+data warehouse
+
+parquet files
+
+Processing
+
+Transformar dados.
+
+Exemplos:
+
+limpar dados
+
+calcular métricas
+
+agregações
+
+enriquecer dados
+
+Exemplo neste projeto:
+
+calcular trends macroeconómicas
+comparar países
+criar features
+
+Aqui normalmente entram ferramentas como:
+
+pandas
+
+Spark
+
+dbt
+
+Tornar os dados consumíveis por utilizadores ou sistemas.
+
+Exemplos:
+
+dashboards
+
+APIs
+
+machine learning models
+
+BI tools
+
+No teu projeto vai ser algo como:
+
+
+Como o pytest sabe que é um teste?
+
+Não é só o assert. É a combinação de:
+
+1. Nome do ficheiro
+test_*.py
+2. Nome da função
+test_*
+3. Uso de assert
+
+
+
+🧠 Conceito MUITO importante (nível empresa)
+
+O teu pipeline é agora:
+
+✅ Idempotente
+podes correr 10x → resultado consistente
+✅ Reprodutível
+git clone + docker compose → funciona
+✅ Testável
+pytest cobre tudo
+
+👉 Isto é literalmente o que recrutadores querem ver.
+
+⚠️ Coisas que normalmente correm mal (contexto real)
+
+Quero mesmo que aprendas isto:
+
+1. Pipeline duplica dados
+
+✔️ resolveste com ON CONFLICT
+
+2. API muda formato
+
+❌ quebra tudo
+
+👉 solução futura:
+
+validação de schema
+3. DB não está disponível
+
+❌ pipeline falha
+
+👉 solução:
+
+retry logic
+4. Dados vêm vazios
+
+✔️ já viste None
+
+👉 solução:
+
+logging + checks
